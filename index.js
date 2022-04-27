@@ -11,14 +11,14 @@ const center = {
     x: canvas.width / 2,
     y: canvas.height / 2,
 }
-const gravity = 0.98
+const gravity = 0.2
 const friction = 0.999
 const bounce = 1
 const speed = 15
 let color = 'black'
 
 class Slime {
-    constructor(postion, radius, color) {
+    constructor(postion, radius, color, leader) {
         this.postion = postion
         this.velocity = {
             x: 10,
@@ -31,6 +31,7 @@ class Slime {
         this.radius = radius
         this.color = color
         this.trail = []
+        this.leader = leader
     }
     draw() {
         ctx.beginPath()
@@ -49,25 +50,25 @@ class Slime {
             x: this.postion.x,
             y: this.postion.y,
         }
-        this.postion.x += this.velocity.x * friction
-        this.postion.y += this.velocity.y * friction
+        this.postion.x += this.velocity.x
+        this.postion.y += this.velocity.y
         // this.postion.y += gravity
         this.collsionCheck()
     }
     collsionCheck() {
         if (this.postion.x > width) {
             this.postion.x = width
-            this.oldPostion.x = this.postion.x + this.velocity.x * bounce
+            this.oldPostion.x = this.postion.x + this.velocity.x
         } else if (this.postion.x < 0) {
             this.postion.x = 0
-            this.oldPostion.x = this.postion.x + this.velocity.x * bounce
+            this.oldPostion.x = this.postion.x + this.velocity.x
         }
         if (this.postion.y > height) {
             this.postion.y = height
-            this.oldPostion.y = this.postion.y + this.velocity.y * bounce
+            this.oldPostion.y = this.postion.y + this.velocity.y
         } else if (this.postion.y < 0) {
             this.postion.y = 0
-            this.oldPostion.y = this.postion.y + this.velocity.y * bounce
+            this.oldPostion.y = this.postion.y + this.velocity.y
         }
     }
     addTrail(postion) {
@@ -93,9 +94,14 @@ class Slime {
 }
 const slimes = []
 
-for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 2; j++) {
-        const slime = new Slime({ x: 100 + i * 20, y: 100 + j * 10 }, 10, 'red')
+for (let i = 0; i < 30; i++) {
+    for (let j = 0; j < 30; j++) {
+        const slime = new Slime(
+            { x: 200 + i * 10, y: 200 + j * 10 },
+            2,
+            'blue',
+            i === 0 && true
+        )
         slimes.push(slime)
     }
 }
@@ -111,14 +117,8 @@ const getNearSlime = () => {
             slimes.forEach((slime2, index2, array2) => {
                 if (index !== index2) {
                     const distance = getDistance(slime.postion, slime2.postion)
-                    if (distance < 20) {
+                    if (distance < slime.radius * 2) {
                         slime.stear(getVelocity(slime.postion, slime2.postion))
-                    } else if (distance < 50 && distance > 40) {
-                        if (getRandomInt() < 50) {
-                            slime.stear(
-                                getVelocity(slime2.postion, slime.postion)
-                            )
-                        }
                     }
                 }
             })
@@ -132,7 +132,7 @@ const animate = () => {
     ctx.fillRect(0, 0, width, height)
     getNearSlime()
 }
-addEventListener('pointermove', (e) => {
+addEventListener('mousemove', (e) => {
     mouse = {
         x: e.clientX,
         y: e.clientY,
